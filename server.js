@@ -36,6 +36,7 @@ app.get('/vapidPublicKey', (req, res) => {
 // Save new subscription
 app.post('/subscribe', (req, res) => {
   const subscription = req.body;
+  console.log('[NEW SUBSCRIPTION]', subscription.endpoint);
   db.saveSubscription(subscription);
   res.status(201).json({ success: true });
 });
@@ -43,6 +44,7 @@ app.post('/subscribe', (req, res) => {
 // Remove a subscription (manual unsubscribe)
 app.post('/unsubscribe', (req, res) => {
   const { endpoint } = req.body;
+  console.log('[UNSUBSCRIBE]', endpoint);
   db.removeSubscription(endpoint);
   res.status(200).json({ removed: true });
 });
@@ -75,6 +77,14 @@ app.post('/notify', async (req, res) => {
 
   res.status(200).json({ success, failed });
 });
+
+// Debug route to inspect subscriptions 
+// TODO: Don't expose it in production...)
+app.get('/subscriptions', (req, res) => {
+  const subs = db.getAllSubscriptions();
+  res.json(subs);
+});
+
 
 // Start the server
 app.listen(PORT, () => {
