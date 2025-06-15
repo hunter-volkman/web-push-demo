@@ -16,22 +16,34 @@ async function registerServiceWorker() {
 }
 
 async function subscribeUser() {
-  const registration = await registerServiceWorker();
-  const vapidKey = await getVapidPublicKey();
+  try {
+    const registration = await registerServiceWorker();
+    console.log('[ServiceWorker] Registered:', registration);
 
-  subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidKey),
-  });
+    const vapidKey = await getVapidPublicKey();
+    console.log('[VAPID] Public Key:', vapidKey);
 
-  await fetch('/subscribe', {
-    method: 'POST',
-    body: JSON.stringify(subscription),
-    headers: { 'Content-Type': 'application/json' }
-  });
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
 
-  document.getElementById('status').textContent = '✅ Subscribed to push';
+    console.log('[Subscription] Success:', subscription);
+
+    await fetch('/subscribe', {
+      method: 'POST',
+      body: JSON.stringify(subscription),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    document.getElementById('status').textContent = '✅ Subscribed to push';
+  } catch (err) {
+    console.error('❌ Subscription error:', err);
+    document.getElementById('status').textContent = `❌ Failed to subscribe: ${err?.message || err}`;
+  }
 }
+
+
 
 async function unsubscribeUser() {
   const registration = await navigator.serviceWorker.ready;
